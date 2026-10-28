@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=AmneziaVPN
+Version=1.0
+Comment=Client of your self-hosted VPN
+Exec=/usr/bin/AmneziaVPN
+Icon=AmneziaVPN
+Categories=Network;Qt;Security;
+Keywords=VPN;AmneziaWG;WireGuard;
+Terminal=false
+StartupWMClass=AmneziaVPN

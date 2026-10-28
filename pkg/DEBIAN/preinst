@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+# A previous install with the vendor's AmneziaVPN_*.run installer leaves files
+# that would shadow this package:
+#   /etc/systemd/system/AmneziaVPN.service  overrides the packaged unit
+#   /usr/local/{bin,sbin}/AmneziaVPN        come before /usr/bin on PATH, so the
+#                                           launcher (and the import) is skipped
+# The Qt Installer Framework's maintenancetool marks such an install.
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    if [ -e /opt/AmneziaVPN/maintenancetool ]; then
+        echo "amneziavpn: removing previous AmneziaVPN install made with the vendor .run installer" >&2
+        if [ -d /run/systemd/system ]; then
+            systemctl stop AmneziaVPN.service 2>/dev/null || true
+            systemctl disable AmneziaVPN.service 2>/dev/null || true
+        fi
+        pkill -x AmneziaVPN 2>/dev/null || true
+        rm -f /etc/systemd/system/AmneziaVPN.service
+        for f in /usr/local/bin/AmneziaVPN /usr/local/sbin/AmneziaVPN; do
+            if [ -L "$f" ]; then
+                case "$(readlink "$f")" in /opt/AmneziaVPN/*) rm -f "$f" ;; esac
+            fi
+        done
+        rm -rf /opt/AmneziaVPN
+        if [ -d /run/systemd/system ]; then
+            systemctl daemon-reload || true
+        fi
+    fi
+fi
+
+exit 0

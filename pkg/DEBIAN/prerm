@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+# The service installs its kill-switch firewall (chains "amnvpn.*", hooked into
+# OUTPUT) when a tunnel comes up, and does not remove it when it is stopped. On
+# a deliberate stop (package removal/upgrade) that would leave the machine with
+# no network until reboot. Unexpected stops are left alone on purpose: there the
+# kill switch is supposed to keep blocking.
+cleanup_killswitch() {
+    for ipt in iptables ip6tables; do
+        command -v "$ipt" >/dev/null 2>&1 || continue
+        for chain in INPUT OUTPUT FORWARD; do
+            while "$ipt" -D "$chain" -j amnvpn.anchors 2>/dev/null; do :; done
+        done
+        chains=$("$ipt" -S 2>/dev/null | sed -n 's/^-N \(amnvpn\.[^ ]*\)$/\1/p')
+        for c in $chains; do "$ipt" -F "$c" 2>/dev/null || true; done
+        for c in $chains; do "$ipt" -X "$c" 2>/dev/null || true; done
+    done
+}
+
+if [ "$1" = remove ] || [ "$1" = upgrade ] || [ "$1" = deconfigure ]; then
+    if [ -d /run/systemd/system ]; then
+        deb-systemd-invoke stop AmneziaVPN.service >/dev/null || true
+    fi
+    cleanup_killswitch
+    # Don't leave a GUI running from files that are about to be replaced.
+    # On upgrade the next launch via the launcher picks the new binary up.
+    pkill -x AmneziaVPN 2>/dev/null || true
+fi
+
+exit 0

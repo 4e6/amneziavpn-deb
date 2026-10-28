@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: AmneziaVPN
+Source: https://github.com/amnezia-vpn/amnezia-client
+
+This package repackages the unmodified binaries from the official
+AmneziaVPN Linux installer. It bundles Qt, OpenVPN, amneziawg-go, tun2socks
+and other third-party components under their own licenses; see the upstream
+repository and the files under /opt/AmneziaVPN for details.
+
+Files: *
+Copyright: AmneziaVPN contributors
+License: GPL-3
+ The AmneziaVPN client is licensed under the GNU General Public License,
+ version 3. On Debian systems the full text is in
+ /usr/share/common-licenses/GPL-3.

@@ -1,0 +1,5 @@
+# The built package and any VPN config contain a private key.
+dist/
+*.deb
+*.conf
+*.run
