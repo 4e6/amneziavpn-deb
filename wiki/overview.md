@@ -26,3 +26,4 @@ the client imports that server and connects to it.
 * Packaging was verified end to end except the one thing users care about: whether
   the tunnel connects. See [the server question](/questions/does-the-server-accept-connections.md).
 * How to rebuild and test: [build and test playbook](/playbooks/build-and-test.md).
+* How an end user installs it without a terminal: [desktop install playbook](/playbooks/install-from-the-desktop.md).
