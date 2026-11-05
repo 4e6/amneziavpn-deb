@@ -1,19 +1,22 @@
 ---
 type: Invariant
 title: The built .deb contains a VPN private key
-description: The .deb and the config it embeds carry the peer's private and preshared keys; they must never be committed or published.
+description: A .deb built with a config carries the peer's private and preshared keys, as does the config; neither may be committed or published.
 tags: [security, secrets]
 sources:
   - resource: .gitignore
   - resource: container-build.sh
-sources_digest: e9416ea5a50833a7
+sources_digest: 3bd0d8f8b12a3e40
 ---
 
 # Statement
 
-The package embeds the server config verbatim, including `PrivateKey` and
+A package built with a config embeds it verbatim, including `PrivateKey` and
 `PresharedKey`. The `.deb`, `dist/`, and any `.conf` or `.run` stay out of git
 and out of any shared location.
+
+A plain repack carries no key, but `dist/` holds either variant under the same
+file name, so the whole directory is treated as secret either way.
 
 # Why
 
@@ -27,7 +30,7 @@ and out of any shared location.
 # Enforced by
 
 * `.gitignore` excludes the build output and config/installer file types.
-* The build writes the `.deb` mode 0600.
+* A build with a config writes the `.deb` mode 0600 (a plain repack is 0644).
 * A scan of staged files for the key material before committing; the test script
   reads the server's public key from the installed config instead of hard-coding
   it, for the same reason.

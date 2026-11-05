@@ -1,26 +1,40 @@
 ---
 type: Module
 title: Build pipeline
-description: Runs the vendor installer headless in an amd64 container and assembles the .deb from its output, templates and the supplied config.
+description: Runs the vendor installer headless in an amd64 container and assembles the .deb from its output, templates and, if one is given, a server config.
 tags: [build, docker]
 sources:
   - resource: build.sh
   - resource: container-build.sh
   - resource: Dockerfile
   - resource: pkg/copyright
-sources_digest: 8c4bc55c3414f385
+sources_digest: 8f205f1cda25e518
 ---
 
 # Responsibility
 
-Given the vendor `.run` and a server `.conf`, produce one `.deb` in `dist/`. The
-host script only starts a container; the real work happens inside it.
+Given the vendor `.run` and, optionally, a server `.conf`, produce one `.deb` in
+`dist/`. The host script only starts a container; the real work happens inside it.
+
+# Two variants
+
+| | Plain repack | With a config |
+|---|---|---|
+| Bundled `default.conf` | none | the config, verbatim |
+| Package description, changelog | no server mentioned | says a server is pre-imported and the `.deb` is a secret |
+| Output mode | 0644 | 0600 |
+
+Everything else (the payload, unit, launcher, maintainer scripts) is the same, so
+there is one set of templates and one package name. The variant is decided by
+whether a config is mounted into the container, and the control template carries no
+`Description`: the build appends the one that matches. Both write the same file
+name, so a build replaces the previous one.
 
 # Behaviour worth knowing
 
 * The package version comes from the extracted installer's own metadata, not from
   a filename.
-* The config is checked for the fields the rest of the system depends on. The
+* A given config is checked for the fields the rest of the system depends on. The
   peer `PublicKey` is required because the [launcher](/architecture/launcher.md)
   keys off it.
 * Installer-framework leftovers are dropped. `maintenancetool` in particular
@@ -29,8 +43,8 @@ host script only starts a container; the real work happens inside it.
   libraries relative to its own location and the service unit points there, so
   moving it would mean patching vendor files. Lintian's "files in /opt" errors
   are therefore knowingly ignored.
-* The output `.deb` is mode 0600 and compressed with xz (older dpkg cannot read
-  zstd). See [the invariant](/invariants/deb-contains-private-key.md).
+* The output `.deb` is compressed with xz (older dpkg cannot read zstd). With a
+  config it is mode 0600: see [the invariant](/invariants/deb-contains-private-key.md).
 
 # Why this shape
 

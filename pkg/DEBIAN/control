@@ -8,10 +8,3 @@ Priority: optional
 Homepage: https://amnezia.org
 Depends: libc6 (>= 2.34), systemd, net-tools, iproute2, iputils-ping, procps, libgl1, libegl1, libopengl0, libglx0, libglib2.0-0t64 | libglib2.0-0, libdbus-1-3, libfontconfig1, libfreetype6, libgssapi-krb5-2, libx11-6, libx11-xcb1, libxcb1, libxcb-cursor0, libxcb-glx0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render0, libxcb-render-util0, libxcb-shape0, libxcb-shm0, libxcb-sync1, libxcb-util1, libxcb-xfixes0, libxcb-xkb1, libxkbcommon0, libxkbcommon-x11-0
 Recommends: iptables
-Description: Amnezia VPN client with a pre-imported server configuration
- Repackaging of the official AmneziaVPN Linux installer as a .deb. The
- privileged AmneziaVPN-service daemon is registered as a systemd unit, and
- the bundled server configuration is imported into each user's client the
- first time they launch it, so the VPN can be connected right away.
- .
- The package contains a VPN private key. Treat the .deb as a secret.

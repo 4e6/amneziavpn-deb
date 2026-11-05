@@ -1,16 +1,20 @@
 #!/bin/bash
 # Runs inside the build container (see build.sh). Inputs are mounted read-only:
-#   /in/installer.run  vendor installer      /in/config.conf  AmneziaWG/WireGuard config
+#   /in/installer.run  vendor installer      /in/config.conf  AmneziaWG/WireGuard config (optional)
 #   /src               this directory        /out             where the .deb goes
 set -euo pipefail
 
 die() { echo "error: $*" >&2; exit 1; }
 
-# --- validate the config -----------------------------------------------------
-grep -q '^\[Interface\]' /in/config.conf || die "config has no [Interface] section"
-grep -q '^\[Peer\]'      /in/config.conf || die "config has no [Peer] section"
-grep -Eq '^[[:space:]]*PrivateKey[[:space:]]*=' /in/config.conf || die "config has no PrivateKey"
-grep -Eq '^[[:space:]]*PublicKey[[:space:]]*='  /in/config.conf || die "config has no peer PublicKey (the launcher keys off it)"
+# --- validate the config, if one was given -----------------------------------
+WITH_CONF=0
+if [ -e /in/config.conf ]; then
+    WITH_CONF=1
+    grep -q '^\[Interface\]' /in/config.conf || die "config has no [Interface] section"
+    grep -q '^\[Peer\]'      /in/config.conf || die "config has no [Peer] section"
+    grep -Eq '^[[:space:]]*PrivateKey[[:space:]]*=' /in/config.conf || die "config has no PrivateKey"
+    grep -Eq '^[[:space:]]*PublicKey[[:space:]]*='  /in/config.conf || die "config has no peer PublicKey (the launcher keys off it)"
+fi
 
 # --- run the vendor installer headless into a scratch root -------------------
 # Native container filesystem, not a macOS bind mount: keeps case-sensitivity,
@@ -36,7 +40,7 @@ ROOT=/build/root
 rm -rf "$ROOT"
 install -d "$ROOT/opt" "$ROOT/usr/bin" "$ROOT/usr/lib/systemd/system" \
            "$ROOT/usr/share/applications" "$ROOT/usr/share/pixmaps" \
-           "$ROOT/usr/share/amneziavpn" "$ROOT/usr/share/doc/amneziavpn" "$ROOT/DEBIAN"
+           "$ROOT/usr/share/doc/amneziavpn" "$ROOT/DEBIAN"
 mv "$INST" "$ROOT/opt/AmneziaVPN"
 APP="$ROOT/opt/AmneziaVPN"
 
@@ -53,11 +57,27 @@ rm -f "$APP/AmneziaVPN.service" "$APP/AmneziaVPN.png" "$APP/AmneziaVPN.desktop"
 
 install -m 0755 /src/pkg/AmneziaVPN         "$ROOT/usr/bin/AmneziaVPN"
 install -m 0644 /src/pkg/AmneziaVPN.desktop "$ROOT/usr/share/applications/AmneziaVPN.desktop"
-# World-readable on purpose: every local user's launcher must be able to read it.
-install -m 0644 /in/config.conf             "$ROOT/usr/share/amneziavpn/default.conf"
 install -m 0644 /src/pkg/copyright          "$ROOT/usr/share/doc/amneziavpn/copyright"
-printf 'amneziavpn (%s-1) unstable; urgency=medium\n\n  * Repackage the official AmneziaVPN %s Linux installer with a pre-imported server.\n\n -- Dmitry Bushev  %s\n' \
-    "$VERSION" "$VERSION" "$(date -R)" | gzip -9n > "$ROOT/usr/share/doc/amneziavpn/changelog.Debian.gz"
+if [ "$WITH_CONF" = 1 ]; then
+    # World-readable on purpose: every local user's launcher must be able to read it.
+    install -d "$ROOT/usr/share/amneziavpn"
+    install -m 0644 /in/config.conf "$ROOT/usr/share/amneziavpn/default.conf"
+    CHANGE="Repackage the official AmneziaVPN $VERSION Linux installer with a pre-imported server."
+    DESCRIPTION="Amnezia VPN client with a pre-imported server configuration
+ Repackaging of the official AmneziaVPN Linux installer as a .deb. The
+ privileged AmneziaVPN-service daemon is registered as a systemd unit, and
+ the bundled server configuration is imported into each user's client the
+ first time they launch it, so the VPN can be connected right away.
+ .
+ The package contains a VPN private key. Treat the .deb as a secret."
+else
+    CHANGE="Repackage the official AmneziaVPN $VERSION Linux installer."
+    DESCRIPTION="Amnezia VPN client
+ Repackaging of the official AmneziaVPN Linux installer as a .deb. The
+ privileged AmneziaVPN-service daemon is registered as a systemd unit."
+fi
+printf 'amneziavpn (%s-1) unstable; urgency=medium\n\n  * %s\n\n -- Dmitry Bushev  %s\n' \
+    "$VERSION" "$CHANGE" "$(date -R)" | gzip -9n > "$ROOT/usr/share/doc/amneziavpn/changelog.Debian.gz"
 
 # Normalise permissions: nothing group/world-writable, dirs traversable.
 find "$ROOT" -type d -exec chmod 0755 {} +
@@ -66,14 +86,19 @@ find "$ROOT/opt" -type f ! -perm /u+x -exec chmod 0644 {} +
 
 # --- control data ------------------------------------------------------------
 SIZE=$(du -sk --exclude=DEBIAN "$ROOT" | cut -f1)
-sed -e "s/@VERSION@/$VERSION/" -e "s/@SIZE@/$SIZE/" /src/pkg/DEBIAN/control > "$ROOT/DEBIAN/control"
+{ sed -e "s/@VERSION@/$VERSION/" -e "s/@SIZE@/$SIZE/" /src/pkg/DEBIAN/control
+  printf 'Description: %s\n' "$DESCRIPTION"; } > "$ROOT/DEBIAN/control"
 for s in preinst postinst prerm postrm; do install -m 0755 "/src/pkg/DEBIAN/$s" "$ROOT/DEBIAN/$s"; done
 (cd "$ROOT" && find . -type f ! -path './DEBIAN/*' -printf '%P\0' | sort -z | xargs -0 md5sum) > "$ROOT/DEBIAN/md5sums"
 
 # --- build -------------------------------------------------------------------
 DEB="/out/amneziavpn_${VERSION}-1_amd64.deb"
 dpkg-deb --root-owner-group -Zxz -b "$ROOT" "$DEB"
-chmod 0600 "$DEB"   # contains the VPN private key
+if [ "$WITH_CONF" = 1 ]; then
+    chmod 0600 "$DEB"   # contains the VPN private key
+else
+    chmod 0644 "$DEB"
+fi
 echo "built $DEB ($(du -h "$DEB" | cut -f1))"
 
 echo "--- lintian (informational) ---"

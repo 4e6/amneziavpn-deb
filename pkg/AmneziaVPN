@@ -1,10 +1,11 @@
 #!/bin/sh
 # Launcher for the AmneziaVPN client.
 #
-# The client has no "default server" setting, but it does accept
-# `--import <data>` (a vpn:// key or a WireGuard/AmneziaWG .conf body). If the
-# server shipped with this package is not yet in the current user's settings,
-# add that argument. The client stores servers in plain QSettings, so the
+# Without a bundled server (a plain repack, no default.conf) it just runs the
+# client. Otherwise: the client has no "default server" setting, but it does
+# accept `--import <data>` (a vpn:// key or a WireGuard/AmneziaWG .conf body).
+# If the bundled server is not yet in the current user's settings, add that
+# argument. The client stores servers in plain QSettings, so the
 # server's public key shows up verbatim in the file once it has been imported.
 #
 # `--import` is NOT idempotent (a second run adds a duplicate server), hence
@@ -17,6 +18,7 @@ SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/AmneziaVPN.ORG/AmneziaVPN.conf"
 # Also connect on startup (server index 0) unless the caller chose otherwise.
 want_import=1
 want_connect=1
+[ -r "$CONF" ] || { want_import=0; want_connect=0; }
 for arg in "$@"; do
     case "$arg" in
         --import|--import=*) want_import=0 ;;
@@ -25,7 +27,7 @@ for arg in "$@"; do
     esac
 done
 
-if [ "$want_import" = 1 ] && [ -r "$CONF" ]; then
+if [ "$want_import" = 1 ]; then
     pubkey=$(sed -n 's/^[[:space:]]*PublicKey[[:space:]]*=[[:space:]]*//p' "$CONF" | head -n 1 | tr -d '\r')
     if [ -n "$pubkey" ] && ! grep -qsF -- "$pubkey" "$SETTINGS"; then
         set -- "$@" --import "$(cat "$CONF")"

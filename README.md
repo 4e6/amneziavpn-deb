@@ -1,12 +1,16 @@
 # amneziavpn-deb
 
 Builds an Ubuntu `.deb` (22.04+, amd64) from the official AmneziaVPN Linux
-installer plus a WireGuard/AmneziaWG `.conf`. After `apt install`, the service
-is running and each user's first launch of the client imports the server.
+installer. After `apt install`, the service is running. Optionally, pass a
+WireGuard/AmneziaWG `.conf` as well: then each user's first launch of the client
+imports that server and connects to it.
 
-    ./build.sh ~/Downloads/AmneziaVPN_5.0.3.0_linux_x64.run ~/Downloads/server.conf
+    ./build.sh ~/Downloads/AmneziaVPN_5.0.3.0_linux_x64.run                         # plain repack
+    ./build.sh ~/Downloads/AmneziaVPN_5.0.3.0_linux_x64.run ~/Downloads/server.conf # with a server
     sudo apt install ./dist/amneziavpn_5.0.3.0-1_amd64.deb
     ./test-install.sh 22.04   # or 24.04: packaging + auto-import smoke test in Docker
+
+Both variants are written to the same file name in `dist/`, so a build replaces the previous one.
 
 ## Installing without a terminal
 The `.deb` is still the right format: snap, Flatpak and AppImage can't install the
@@ -22,8 +26,8 @@ a downloaded `.deb`:
 - **Removing:** App Center can't uninstall a side-loaded `.deb`; use
   `sudo apt remove amneziavpn` (or `purge`).
 
-`build.sh` writes the file as 0600 on purpose (it holds the private key). The GUI
-installers read it as root, so leave the mode alone.
+With a config, `build.sh` writes the file as 0600 on purpose (it holds the private
+key). The GUI installers read it as root, so leave the mode alone.
 
 ## How AmneziaVPN works (what the package relies on)
 - `AmneziaVPN-service` (root, systemd) owns the tunnel (`amneziawg-go`, OpenVPN,
@@ -35,6 +39,9 @@ installers read it as root, so leave the mode alone.
   peer PublicKey is absent from the user's settings.
 
 ## Behaviour / caveats
+Without a config, the wrapper just starts the client: it imports nothing and
+doesn't auto-connect. The rest of this list applies to builds with a config,
+except the kill-switch and vendor-install notes, which apply to both.
 - The `.deb` contains the VPN private key and PSK; `/usr/share/amneziavpn/default.conf`
   is world-readable (0644) so every user's launcher can import it. Don't publish the `.deb`.
 - A peer key is meant for one device at a time; don't install one `.deb` on several machines.

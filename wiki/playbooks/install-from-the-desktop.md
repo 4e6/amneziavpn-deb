@@ -5,7 +5,7 @@ description: How a non-terminal user installs the .deb on current Ubuntu (App Ce
 tags: [install, gui]
 sources:
   - resource: README.md#installing-without-a-terminal
-sources_digest: bd4ff4194d495021
+sources_digest: 8291feb936f00ec1
 ---
 
 # When
@@ -37,6 +37,6 @@ not the format.
 * The maintainer scripts don't read a TTY, `SUDO_USER` or `$HOME`, so an install
   through packagekitd/pkexec should match `sudo apt install`. Only the
   [launcher](/architecture/launcher.md) uses `$HOME`, and it runs as the user.
-* The built file is 0600 on purpose ([secret](/invariants/deb-contains-private-key.md)).
+* A file built with a config is 0600 on purpose ([secret](/invariants/deb-contains-private-key.md)).
   GUI installers read it as root, so don't loosen the mode to "fix" an install.
 * Installing from the desktop has been tried with this package and works.

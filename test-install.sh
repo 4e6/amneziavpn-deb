@@ -1,6 +1,7 @@
 #!/bin/bash
 # Smoke-test the built .deb in a clean Ubuntu container (no systemd, no TUN, so
 # this checks packaging and the auto-import, NOT that the tunnel connects).
+# A plain repack (built without a config) is checked to import nothing.
 #   ./test-install.sh 22.04|24.04 [path/to/amneziavpn_*.deb]
 set -euo pipefail
 REL=${1:?usage: $0 <ubuntu release> [deb]}
@@ -32,8 +33,10 @@ done
 [ $miss = 0 ] && echo "none missing"
 
 step "files"
-ls -l /usr/bin/AmneziaVPN /usr/share/amneziavpn/default.conf /usr/lib/systemd/system/AmneziaVPN.service \
+ls -l /usr/bin/AmneziaVPN /usr/lib/systemd/system/AmneziaVPN.service \
       /usr/share/applications/AmneziaVPN.desktop /usr/share/pixmaps/AmneziaVPN.png
+CONF=/usr/share/amneziavpn/default.conf
+if [ -e $CONF ]; then ls -l $CONF; else echo "no bundled server config (plain repack)"; fi
 ls /opt/AmneziaVPN
 [ ! -e /opt/AmneziaVPN/maintenancetool ] && echo "no maintenancetool (good)"
 [ ! -e /usr/local/bin/AmneziaVPN ] && echo "nothing shadowing the launcher in /usr/local/bin (good)"
@@ -42,11 +45,18 @@ step "first launch as an unprivileged user, twice"
 useradd -m tester
 S=/home/tester/.config/AmneziaVPN.ORG/AmneziaVPN.conf
 run() { su tester -c "export QT_QPA_PLATFORM=xcb; xvfb-run -a timeout -s INT 20 AmneziaVPN" >/dev/null 2>&1 || true; }
-PUB=$(sed -n 's/^[[:space:]]*PublicKey[[:space:]]*=[[:space:]]*//p' /usr/share/amneziavpn/default.conf | head -n1)
-run; echo "after launch 1: $(grep -o 'storageServerId' $S | wc -l) server(s), pubkey present: $(grep -cF "$PUB" $S)"
-run; echo "after launch 2: $(grep -o 'storageServerId' $S | wc -l) server(s)"
-grep -E '^defaultServerId' $S
-stat -c '%a %U %n' $S
+servers() { grep -so 'storageServerId' $S | wc -l; }
+if [ -e $CONF ]; then
+    PUB=$(sed -n 's/^[[:space:]]*PublicKey[[:space:]]*=[[:space:]]*//p' $CONF | head -n1)
+    run; echo "after launch 1: $(servers) server(s), pubkey present: $(grep -cF "$PUB" $S)"
+    run; echo "after launch 2: $(servers) server(s)"
+    grep -E '^defaultServerId' $S
+else
+    run; echo "after launch 1: $(servers) server(s)"
+    run; echo "after launch 2: $(servers) server(s)"
+    [ "$(servers)" = 0 ] && echo "nothing imported (good)"
+fi
+[ -e $S ] && stat -c '%a %U %n' $S || echo "(no settings file written)"
 
 step "dpkg --purge leaves nothing behind"
 dpkg --purge amneziavpn >/dev/null 2>&1

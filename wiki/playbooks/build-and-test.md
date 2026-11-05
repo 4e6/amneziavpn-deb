@@ -5,7 +5,7 @@ description: Rebuild the .deb for a new installer or config, run the container s
 tags: [build, test]
 sources:
   - resource: test-install.sh
-sources_digest: f0450bd8d9484458
+sources_digest: 5ccade107438d345
 ---
 
 # When
@@ -15,12 +15,13 @@ package templates or scripts.
 
 # Steps
 
-1. Build: run `build.sh` with the installer and the config. Output lands in
-   `dist/` as a 0600 file.
+1. Build: run `build.sh` with the installer, plus the config unless a plain
+   repack is wanted. Output lands in `dist/`, as a 0600 file when built with a
+   config.
 2. Smoke test in clean containers for each supported release (22.04, 24.04) with
    `test-install.sh`. It checks that dependencies resolve, no shared library is
-   missing, a first launch followed by a second leaves exactly one server, and
-   purge leaves nothing behind. Containers have no systemd and no TUN device, so
+   missing, a first launch followed by a second leaves exactly one server (none
+   for a plain repack), and purge leaves nothing behind. Containers have no systemd and no TUN device, so
    this proves packaging and import, **not** that the tunnel connects.
 3. End to end, in an amd64 OrbStack machine (it has systemd and `/dev/net/tun`):
    install the `.deb`, confirm the service is active, launch the client as a normal
@@ -28,7 +29,7 @@ package templates or scripts.
 4. For a graphical session, run a desktop plus a VNC server in that machine and
    open it with macOS Screen Sharing. The `.deb` is reachable at its Mac path
    from inside the machine; copy it to `/tmp` and make it world-readable before
-   `apt install`, since the original is 0600.
+   `apt install`, since a config build's original is 0600.
 5. Delete the VM afterwards.
 
 # Verification
