@@ -39,4 +39,4 @@ not the format.
   [launcher](/architecture/launcher.md) uses `$HOME`, and it runs as the user.
 * The built file is 0600 on purpose ([secret](/invariants/deb-contains-private-key.md)).
   GUI installers read it as root, so don't loosen the mode to "fix" an install.
-* None of this has been tried in a real desktop yet: [open question](/questions/does-gui-install-work.md).
+* Installing from the desktop has been tried with this package and works.

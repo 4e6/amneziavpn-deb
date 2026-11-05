@@ -13,7 +13,7 @@ vendor upgrade can change it. Re-check before trusting after a version bump.
 * A GUI client (`AmneziaVPN`) and a root service (`AmneziaVPN-service`). The
   client talks to the service over a local socket under `/var/run/amneziavpn/`.
   The service owns the tunnel (its bundled userspace AmneziaWG), routes and
-  firewall; the GUI does not.
+  firewall; the GUI does not. Even so, closing the app disconnects the tunnel.
 * Servers are stored per user as **plaintext JSON inside a Qt settings file**
   under `~/.config/AmneziaVPN.ORG/`. An imported WireGuard/AmneziaWG `.conf`
   becomes an `amnezia-awg` container, with the AWG 2.0 fields (S3/S4, H1–H4
@@ -27,7 +27,9 @@ vendor upgrade can change it. Re-check before trusting after a version bump.
   `.conf` body). **Not idempotent**: see [the gotcha](/gotchas/import-is-not-idempotent.md).
 * `--connect <index>` connects to the server at that index on startup. Combined
   with `--import` on a first launch it connects to the freshly imported server.
-* `--autostart`, `--cleanup` also exist.
+* A launch while the client is already running **ignores `--import`**. Harmless here: the launcher re-checks on the
+  next launch ([why](/architecture/launcher.md)).
+* `--autostart`, `--cleanup` also exist. There is no disconnect option.
 
 # Runtime needs
 

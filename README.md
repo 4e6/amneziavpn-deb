@@ -40,7 +40,7 @@ installers read it as root, so leave the mode alone.
 - A peer key is meant for one device at a time; don't install one `.deb` on several machines.
 - If a user deletes the server in the app, it is re-imported on the next launch.
 - The launcher also passes `--connect 0`, so the app connects to the first server on start.
-  Pass your own `--connect N` to override. Whether closing the window disconnects is untested.
+  Pass your own `--connect N` to override. Closing the app disconnects.
 - The app's kill switch is on: while connected, other traffic is blocked. `prerm` removes
   the leftover firewall rules when the package is removed/upgraded.
 - Installing over a vendor `.run` install cleans up `/opt/AmneziaVPN`, `/etc/systemd/system/AmneziaVPN.service`

@@ -37,8 +37,6 @@ package templates or scripts.
 * After upgrade and after remove **while connected**, the network still works
   ([why](/gotchas/kill-switch-outlives-the-service.md)).
 * Installing over a vendor `.run` install removes its leftovers.
-* The tunnel check only means something from a network the server accepts:
-  [open question](/questions/does-the-server-accept-connections.md).
 
 # Cautions
 

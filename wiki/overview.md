@@ -23,7 +23,6 @@ the client imports that server and connects to it.
 # Things to keep in mind
 
 * The built package contains a VPN private key: [treat it as a secret](/invariants/deb-contains-private-key.md).
-* Packaging was verified end to end except the one thing users care about: whether
-  the tunnel connects. See [the server question](/questions/does-the-server-accept-connections.md).
+* Verified end to end, including the tunnel connecting.
 * How to rebuild and test: [build and test playbook](/playbooks/build-and-test.md).
 * How an end user installs it without a terminal: [desktop install playbook](/playbooks/install-from-the-desktop.md).

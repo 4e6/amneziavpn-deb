@@ -44,11 +44,7 @@ changes to how the client stores servers. The guard exists because
   because the format is private to the vendor and version-dependent, and a
   package script cannot reach users created later.
 * **A write-once marker file instead of the key check** — rejected because a
-  failed import (or an already-running app dropping the argument) would be
-  recorded as done. The cost of the content check we chose: a server the user
+  failed import, or one dropped because the app was already running (which
+  the client does, see [vendor client](/integrations/amnezia-client.md)), would
+  be recorded as done. The cost of the content check we chose: a server the user
   deletes comes back on the next launch.
-
-# Open
-
-* [Is `--import` honoured when the app is already running?](/questions/import-while-app-running.md)
-* [Does closing the app disconnect?](/questions/does-closing-the-app-disconnect.md)
