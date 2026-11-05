@@ -8,7 +8,7 @@ sources:
   - resource: container-build.sh
   - resource: Dockerfile
   - resource: pkg/copyright
-sources_digest: 8f205f1cda25e518
+sources_digest: 8ac270e540de97a7
 ---
 
 # Responsibility
@@ -24,11 +24,15 @@ Given the vendor `.run` and, optionally, a server `.conf`, produce one `.deb` in
 | Package description, changelog | no server mentioned | says a server is pre-imported and the `.deb` is a secret |
 | Output mode | 0644 | 0600 |
 
-Everything else (the payload, unit, launcher, maintainer scripts) is the same, so
-there is one set of templates and one package name. The variant is decided by
+A config build can additionally be made with `--autoconnect`: the launcher then
+connects to the server on start (off by default; it is refused without a config),
+and the changelog says so. That is the only other difference, and it is a
+placeholder substituted into the launcher. Everything else (the payload, unit,
+maintainer scripts) is the same, so there is one set of templates and one package
+name. The variant is decided by
 whether a config is mounted into the container, and the control template carries no
 `Description`: the build appends the one that matches. Both write the same file
-name, so a build replaces the previous one.
+name, so a build replaces the previous one, and all variants share one version.
 
 # Behaviour worth knowing
 

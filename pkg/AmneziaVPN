@@ -10,14 +10,20 @@
 #
 # `--import` is NOT idempotent (a second run adds a duplicate server), hence
 # the grep guard.
+#
+# It adds `--connect 0` (connect on start) only if the package was built with
+# build.sh --autoconnect; the default is off.
 
+# Set at build time (container-build.sh substitutes it: 1 = connect on start).
+# Left unsubstituted, as in this source file, it is not 1, so connecting is off.
+AUTOCONNECT=@AUTOCONNECT@
 APP=/opt/AmneziaVPN/bin/AmneziaVPN
 CONF=/usr/share/amneziavpn/default.conf
 SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/AmneziaVPN.ORG/AmneziaVPN.conf"
 
-# Also connect on startup (server index 0) unless the caller chose otherwise.
+# Connect on startup (server index 0) only if built that way, and unless the caller chose otherwise.
 want_import=1
-want_connect=1
+want_connect=$AUTOCONNECT
 [ -r "$CONF" ] || { want_import=0; want_connect=0; }
 for arg in "$@"; do
     case "$arg" in

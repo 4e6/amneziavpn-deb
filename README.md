@@ -3,14 +3,20 @@
 Builds an Ubuntu `.deb` (22.04+, amd64) from the official AmneziaVPN Linux
 installer. After `apt install`, the service is running. Optionally, pass a
 WireGuard/AmneziaWG `.conf` as well: then each user's first launch of the client
-imports that server and connects to it.
+imports that server. Add `--autoconnect` (config builds only) and the launcher also
+connects to it on start; that is off by default.
 
     ./build.sh ~/Downloads/AmneziaVPN_5.0.3.0_linux_x64.run                         # plain repack
     ./build.sh ~/Downloads/AmneziaVPN_5.0.3.0_linux_x64.run ~/Downloads/server.conf # with a server
+    ./build.sh --autoconnect ~/Downloads/AmneziaVPN_5.0.3.0_linux_x64.run ~/Downloads/server.conf # ...and connect on start
     sudo apt install ./dist/amneziavpn_5.0.3.0-1_amd64.deb
     ./test-install.sh 22.04   # or 24.04: packaging + auto-import smoke test in Docker
 
-Both variants are written to the same file name in `dist/`, so a build replaces the previous one.
+All variants are written to the same file name in `dist/`, so a build replaces the previous one.
+They also share one version string, so an upgrade from a package built with `--autoconnect` to
+one built without it silently stops the auto-connect; only the changelog and the launcher differ.
+Packages built before autoconnect became optional always auto-connect, so the same applies when
+replacing one of those with a default build.
 
 ## Installing without a terminal
 The `.deb` is still the right format: snap, Flatpak and AppImage can't install the
@@ -46,8 +52,9 @@ except the kill-switch and vendor-install notes, which apply to both.
   is world-readable (0644) so every user's launcher can import it. Don't publish the `.deb`.
 - A peer key is meant for one device at a time; don't install one `.deb` on several machines.
 - If a user deletes the server in the app, it is re-imported on the next launch.
-- The launcher also passes `--connect 0`, so the app connects to the first server on start.
-  Pass your own `--connect N` to override. Closing the app disconnects.
+- Built with `--autoconnect`, the launcher also passes `--connect 0`, so the app connects to
+  the first server on start; pass your own `--connect N` to override. Without it the app
+  does not connect by itself. Closing the app disconnects.
 - The app's kill switch is on: while connected, other traffic is blocked. `prerm` removes
   the leftover firewall rules when the package is removed/upgraded.
 - Installing over a vendor `.run` install cleans up `/opt/AmneziaVPN`, `/etc/systemd/system/AmneziaVPN.service`

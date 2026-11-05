@@ -13,7 +13,7 @@ installer (a Qt Installer Framework `.run`, x86-64 only) as a `.deb` for Ubuntu
 
 Two variants come from the same build: a **plain repack** of the installer, or
 one with a WireGuard/AmneziaWG server config baked in, which each user's first
-launch of the client imports and connects to. The config is optional.
+launch of the client imports. The config is optional, and so is connecting on start (`--autoconnect`, off by default).
 
 # Parts
 

@@ -2,6 +2,7 @@
 # Runs inside the build container (see build.sh). Inputs are mounted read-only:
 #   /in/installer.run  vendor installer      /in/config.conf  AmneziaWG/WireGuard config (optional)
 #   /src               this directory        /out             where the .deb goes
+# Env: AUTOCONNECT=1 makes the launcher connect to the bundled server on start (needs a config).
 set -euo pipefail
 
 die() { echo "error: $*" >&2; exit 1; }
@@ -15,6 +16,10 @@ if [ -e /in/config.conf ]; then
     grep -Eq '^[[:space:]]*PrivateKey[[:space:]]*=' /in/config.conf || die "config has no PrivateKey"
     grep -Eq '^[[:space:]]*PublicKey[[:space:]]*='  /in/config.conf || die "config has no peer PublicKey (the launcher keys off it)"
 fi
+
+AUTOCONNECT=${AUTOCONNECT:-0}
+case $AUTOCONNECT in 0|1) ;; *) die "AUTOCONNECT must be 0 or 1" ;; esac
+[ "$AUTOCONNECT" = 0 ] || [ "$WITH_CONF" = 1 ] || die "AUTOCONNECT=1 needs a config to connect to"
 
 # --- run the vendor installer headless into a scratch root -------------------
 # Native container filesystem, not a macOS bind mount: keeps case-sensitivity,
@@ -55,7 +60,9 @@ install -m 0644 "$APP/AmneziaVPN.service" "$ROOT/usr/lib/systemd/system/AmneziaV
 install -m 0644 "$APP/AmneziaVPN.png"     "$ROOT/usr/share/pixmaps/AmneziaVPN.png"
 rm -f "$APP/AmneziaVPN.service" "$APP/AmneziaVPN.png" "$APP/AmneziaVPN.desktop"
 
-install -m 0755 /src/pkg/AmneziaVPN         "$ROOT/usr/bin/AmneziaVPN"
+sed "s/@AUTOCONNECT@/$AUTOCONNECT/" /src/pkg/AmneziaVPN > "$ROOT/usr/bin/AmneziaVPN"
+chmod 0755 "$ROOT/usr/bin/AmneziaVPN"
+! grep -q '@AUTOCONNECT@' "$ROOT/usr/bin/AmneziaVPN" || die "launcher placeholder was not substituted"
 install -m 0644 /src/pkg/AmneziaVPN.desktop "$ROOT/usr/share/applications/AmneziaVPN.desktop"
 install -m 0644 /src/pkg/copyright          "$ROOT/usr/share/doc/amneziavpn/copyright"
 if [ "$WITH_CONF" = 1 ]; then
@@ -63,6 +70,7 @@ if [ "$WITH_CONF" = 1 ]; then
     install -d "$ROOT/usr/share/amneziavpn"
     install -m 0644 /in/config.conf "$ROOT/usr/share/amneziavpn/default.conf"
     CHANGE="Repackage the official AmneziaVPN $VERSION Linux installer with a pre-imported server."
+    [ "$AUTOCONNECT" = 0 ] || CHANGE="$CHANGE The launcher connects to it on start."
     DESCRIPTION="Amnezia VPN client with a pre-imported server configuration
  Repackaging of the official AmneziaVPN Linux installer as a .deb. The
  privileged AmneziaVPN-service daemon is registered as a systemd unit, and
