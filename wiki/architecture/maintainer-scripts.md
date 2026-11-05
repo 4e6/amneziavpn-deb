@@ -5,7 +5,7 @@ description: "The deb's pre/post install and removal scripts: service lifecycle,
 tags: [dpkg, systemd, lifecycle]
 sources:
   - resource: pkg/DEBIAN/**
-sources_digest: fcf7e07c03468611
+sources_digest: 00759b71703df5bc
 ---
 
 # Responsibility

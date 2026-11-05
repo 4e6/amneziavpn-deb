@@ -1,6 +1,7 @@
 # Update Log
 
 ## 2026-11-05
+* **Updated**: [build pipeline](/architecture/build-pipeline.md): the package names its maintainer without an email.
 * **Updated**: connecting on start is now optional and off by default: `build.sh --autoconnect` (config builds only) makes the launcher add `--connect 0`. Updated [launcher](/architecture/launcher.md), [build pipeline](/architecture/build-pipeline.md), [overview](/overview.md) and the [build and test](/playbooks/build-and-test.md) playbook.
 * **Updated**: the server config is now optional, and without it the build is a plain repack. Updated [overview](/overview.md), [build pipeline](/architecture/build-pipeline.md) (the two variants), [launcher](/architecture/launcher.md) (no import or connect without a config), the [private-key invariant](/invariants/deb-contains-private-key.md), and the [build and test](/playbooks/build-and-test.md) and [desktop install](/playbooks/install-from-the-desktop.md) playbooks.
 * **Deprecation**: all four open questions are answered, and their pages are deleted: `questions/does-closing-the-app-disconnect.md` (it does disconnect), `questions/does-gui-install-work.md` (it works), `questions/does-the-server-accept-connections.md` (yes) and `questions/import-while-app-running.md` (the argument is dropped, which the launcher already tolerates). Answers moved into the [vendor client](/integrations/amnezia-client.md), [launcher](/architecture/launcher.md), [desktop install](/playbooks/install-from-the-desktop.md) and [overview](/overview.md) pages.

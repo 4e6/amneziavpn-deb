@@ -8,7 +8,7 @@ sources:
   - resource: container-build.sh
   - resource: Dockerfile
   - resource: pkg/copyright
-sources_digest: 8ac270e540de97a7
+sources_digest: 94d2383a318077fe
 ---
 
 # Responsibility
@@ -47,6 +47,9 @@ name, so a build replaces the previous one, and all variants share one version.
   libraries relative to its own location and the service unit points there, so
   moving it would mean patching vendor files. Lintian's "files in /opt" errors
   are therefore knowingly ignored.
+* The maintainer is named without an email, in the control file and the changelog
+  signer alike, so the package does not publish the author's address. dpkg accepts
+  that; lintian's `malformed-contact` is knowingly ignored.
 * The output `.deb` is compressed with xz (older dpkg cannot read zstd). With a
   config it is mode 0600: see [the invariant](/invariants/deb-contains-private-key.md).
 

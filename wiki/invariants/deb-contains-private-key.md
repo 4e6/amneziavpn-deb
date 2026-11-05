@@ -6,7 +6,7 @@ tags: [security, secrets]
 sources:
   - resource: .gitignore
   - resource: container-build.sh
-sources_digest: eca9b57890a8b1d9
+sources_digest: 9556c50903ebf06a
 ---
 
 # Statement

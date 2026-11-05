@@ -7,7 +7,7 @@ sources:
   - resource: pkg/AmneziaVPN
   - resource: pkg/AmneziaVPN.desktop
   - resource: container-build.sh
-sources_digest: a53c1902616498a6
+sources_digest: 73d5a38b4731f36b
 ---
 
 # Responsibility

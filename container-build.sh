@@ -110,4 +110,4 @@ fi
 echo "built $DEB ($(du -h "$DEB" | cut -f1))"
 
 echo "--- lintian (informational) ---"
-lintian --tag-display-limit 0 "$DEB" 2>&1 | grep -vE 'dir-or-file-in-opt|embedded-library|statically-linked|binary-without-manpage|no-manual-page|hardening-no|unstripped|shared-library-lacks|library-not-linked|no-symbols-control|shlib' | head -40 || true
+lintian --tag-display-limit 0 "$DEB" 2>&1 | grep -vE 'malformed-contact|dir-or-file-in-opt|embedded-library|statically-linked|binary-without-manpage|no-manual-page|hardening-no|unstripped|shared-library-lacks|library-not-linked|no-symbols-control|shlib' | head -40 || true
